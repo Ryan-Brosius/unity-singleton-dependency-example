@@ -5,6 +5,9 @@ using UnityEngine;
 /// </summary>
 public abstract class SingletonMonobehavior<T> : MonoBehaviour where T : MonoBehaviour
 {
+    [Tooltip("If true will have DontDestroyOnLoad appied during awake phase")]
+    [SerializeField] private bool _persistAcrossScenes = true;
+
     public static T Instance { get; private set; }
 
     protected virtual void Awake()
@@ -17,6 +20,12 @@ public abstract class SingletonMonobehavior<T> : MonoBehaviour where T : MonoBeh
         }
 
         Instance = this as T;
+
+        if (_persistAcrossScenes)
+        {
+            DontDestroyOnLoad(gameObject);
+        }
+
         DependencyContainer.Instance.Register<T>(Instance);
     }
 

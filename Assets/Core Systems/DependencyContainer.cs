@@ -13,7 +13,10 @@ public class DependencyContainer
     public void Register<T>(T instance)
     {
         var type = typeof(T);
-        if (_singletons.ContainsKey(type))
+
+        // if _singletons[type] is null most likely was a monobehavior that was deleted during a scene change
+        // though theoretically this could be a bad way to try to solve this in the future
+        if (_singletons.ContainsKey(type) && _singletons[type] != null)
             throw new Exception($"{type.Name} is already registered");
 
         _singletons[type] = instance;
@@ -23,7 +26,13 @@ public class DependencyContainer
     {
         var type = typeof(T);
         if (_singletons.TryGetValue(type, out var obj))
+        {
+            // Should be throwing error here, this shouldnt be happening and something has gone wrong (kinda)
+            if (obj == null)
+                throw new Exception($"{type.Name} is registered but the instance is null");
+
             return (T)obj;
+        }
 
         // If it's a MonoBehaviour, we cannot auto-create
         // it must be registered manually in the scene
@@ -47,6 +56,12 @@ public class DependencyContainer
     {
         if (_singletons.TryGetValue(typeof(T), out var obj))
         {
+            if (obj == null)
+            {
+                instance = default;
+                return false;
+            }
+
             instance = (T)obj;
             return true;
         }
